@@ -1,0 +1,32 @@
+name: Create Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  create_release:
+    if: |
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main' &&
+      startsWith(github.event.pull_request.head.ref, 'pre-release/')
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Checkout pre-release branch merge commit
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+    - name: Create and push new release branch
+      run: |
+        release_app=$(echo ${{ github.event.pull_request.head.ref }} | sed -E 's/^pre-release\/(.*)\/(.*)/\1/')
+        release_version=$(echo ${{ github.event.pull_request.head.ref }} | sed -E 's/^pre-release\/(.*)\/(.*)/\2/')
+        git checkout -b release/$release_app/$release_version
+        git push --set-upstream origin release/$release_app/$release_version

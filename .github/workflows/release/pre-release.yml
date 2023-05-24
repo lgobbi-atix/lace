@@ -1,0 +1,49 @@
+name: Create Pre-Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'Which app to release (extension)'
+        required: true
+        type: choice
+        options:
+          - extension
+      version:
+        description: 'New version (x.y.z)'
+        required: true
+
+run-name: "Create Pre-Release | app: ${{ inputs.app }} | version: ${{ inputs.version }}"
+
+jobs:
+  create_pre-release:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v3
+      with:
+        ref: main
+    
+    - name: Create pre-release branch
+      run: git checkout -b pre-release/${{ inputs.app }}/${{ inputs.version }}
+
+    - name: Push branch
+      run: git push --set-upstream origin pre-release/${{ inputs.app }}/${{ inputs.version }}
+
+    - name: Bump version in manifest and package json files
+      if: inputs.app == 'extension'
+      run: |
+        sed -i "s/\"version\": \"[0-9.]*\"/\"version\": \"${{ inputs.version }}\"/g" apps/browser-extension-wallet/manifest.dev.json apps/browser-extension-wallet/manifest.prod.json
+        sed -i "s/\"version\": \"[0-9.]*\"/\"version\": \"${{ inputs.version }}\"/g" apps/browser-extension-wallet/package.json
+
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        commit-message: 'chore(${{ inputs.app }}): bump version to ${{ inputs.version }}'
+        title: Pre-release version ${{ inputs.version }} for ${{ inputs.app }}
+        body: |
+          This pull request is to prepare the release of version ${{ inputs.version }} for ${{ inputs.app }} app.
+        branch: pre-release/${{ inputs.app }}/${{ inputs.version }}
+        base: main
+        labels: release
