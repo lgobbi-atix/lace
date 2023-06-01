@@ -1,0 +1,24 @@
+name: Release branch checks
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  e2e_tests_linux_chrome:
+    uses: ./.github/workflows/e2e-tests-linux.yml
+    with:
+      BROWSER: 'chrome'
+  e2e_tests_linux_edge:
+    uses: ./.github/workflows/e2e-tests-linux.yml
+    with:
+      BROWSER: 'edge'
+  e2e_tests_win_chrome:
+    uses: ./.github/workflows/e2e-tests-win.yml
+    with:
+      BROWSER: 'chrome'
+  e2e_tests_win_edge:
+    uses: ./.github/workflows/e2e-tests-win.yml
+    with:
+      BROWSER: 'edge'

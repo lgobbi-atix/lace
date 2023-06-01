@@ -3,9 +3,6 @@ name: E2E Tests Linux
 on:
   schedule:
     - cron: '0 0 * * *'
-  push:
-    branches:
-      - 'release/**'
   workflow_dispatch:
     inputs:
       tags:
@@ -25,6 +22,12 @@ on:
         options:
           - preprod
           - mainnet
+  workflow_call:
+    inputs:
+      browser:
+        description: 'Browser to use'
+        required: true
+        type: string
 
 run-name: "E2E | os: Linux | browser: ${{ github.event.inputs.browser || 'chrome' }} | tags: ${{ github.event.inputs.tags || 'empty' }} | network: ${{ github.event.inputs.network }} | #${{ github.run_number }}"
 
