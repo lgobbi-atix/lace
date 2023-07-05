@@ -13,7 +13,7 @@ import { getAssetImageUrl } from '@src/utils/get-asset-image-url';
 const useWalletInformation = () =>
   useWalletStore((state) => ({
     name: state?.walletInfo?.name,
-    address: state?.walletInfo?.address
+    address: state?.walletInfo?.addresses[0].address
   }));
 
 export const QRInfoWalletDrawer = (): React.ReactElement => {
@@ -33,11 +33,11 @@ export const QRInfoWalletDrawer = (): React.ReactElement => {
         getQRCodeOptions={useCallback(() => getQRCodeOptions(theme, ADDRESS_CARD_QR_CODE_SIZE), [theme])}
         copiedMessage={t('core.infoWallet.addressCopied')}
       />
-      {handles?.map(({ nftMetadata }) => (
+      {handles?.map(({ nftMetadata, image }) => (
         <HandleAddressCard
           key={nftMetadata.name}
           name={nftMetadata.name}
-          image={getAssetImageUrl(nftMetadata.image)}
+          image={getAssetImageUrl(image || nftMetadata.image)}
           copiedMessage={t('core.infoWallet.handleCopied')}
         />
       ))}
