@@ -16,9 +16,7 @@
   }
 
   .codeTextLarge {
-    font-size: var(--subHeading);
-    line-height: size_unit(4);
-    font-weight: 700;
+    @include text-subHeading-bold;
   }
 
   .codeTextMedium {
@@ -82,14 +80,10 @@
 .popupView {
   &.balance {
     .balanceTextLarge {
-      font-size: var(--pageHeading);
-      line-height: size_unit(7);
-      font-weight: 700;
+      @include text-pageHeading
     }
     .balanceTextXLarge {
-      font-size: var(--display);
-      line-height: size_unit(8);
-      font-weight: 700;
+      @include text-display;
       margin-bottom: -#{size_unit(1)};
     }
 
