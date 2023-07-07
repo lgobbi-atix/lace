@@ -56,8 +56,8 @@ export const AssetsPortfolio = ({
     walletUI: { canManageBalancesVisibility, areBalancesVisible }
   } = useWalletStore();
   const { fiatCurrency } = useCurrencyStore();
-  const [redirectToReceive] = useRedirection(walletRoutePaths.receive);
-  const [redirectToSend] = useRedirection<{ params: { id: string } }>(walletRoutePaths.send);
+  const redirectToReceive = useRedirection(walletRoutePaths.receive);
+  const redirectToSend = useRedirection<{ params: { id: string } }>(walletRoutePaths.send);
 
   const isPopupView = appMode === APP_MODE_POPUP;
 
