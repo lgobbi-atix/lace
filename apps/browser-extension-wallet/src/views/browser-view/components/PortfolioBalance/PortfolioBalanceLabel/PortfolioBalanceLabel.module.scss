@@ -10,10 +10,8 @@
   }
 
   label {
+    @include text-bodyLarge-semi-bold;
     color: $theme-text-color-light-grey;
-    font-size: size_unit(2);
-    font-weight: 500;
-    line-height: size_unit(3);
     text-align: left;
     display: flex;
     align-items: center;

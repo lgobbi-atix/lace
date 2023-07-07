@@ -36,14 +36,12 @@
   .balanceTextLarge {
     font-size: var(--display);
     @media (max-width: $breakpoint-popup) {
-      font-size: var(--pageHeading);
-      line-height: size_unit(7);
+      @include text-pageHeading;
     }
   }
 
   .balanceTextMedium {
-    font-size: var(--pageHeading);
-    line-height: size_unit(7);
+    @include text-pageHeading;
   }
 }
 
@@ -80,7 +78,7 @@
 .popupView {
   &.balance {
     .balanceTextLarge {
-      @include text-pageHeading
+      @include text-pageHeading;
     }
     .balanceTextXLarge {
       @include text-display;
@@ -99,9 +97,7 @@
     }
 
     .codeTextMedium {
-      font-size: var(--body);
-      line-height: size_unit(3);
-      font-weight: 700;
+      @include text-body-bold;
     }
   }
 
