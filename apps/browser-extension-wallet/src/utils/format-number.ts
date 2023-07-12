@@ -15,10 +15,10 @@ type GetCaretPositionForFormattedCurrencyProps = {
 
 type PlaceValue = 'unit' | 'ten' | 'hundred' | 'thousand' | 'million' | 'billion' | 'trillion' | 'quadrillion';
 
-const MILLION = 1_000_000;
-const BILLION = 1_000_000_000;
-const TRILLION = 1_000_000_000_000;
-const QUADRILLION = 1_000_000_000_000_000;
+const MILLION = 1e6;
+const BILLION = 1e9;
+const TRILLION = 1e12;
+const QUADRILLION = 1e15;
 
 // Number(value) would limit to 15 chars anyway
 const MAX_FRACTION_DIGIT_RANGE = 15;
@@ -31,10 +31,10 @@ const MAX_FRACTION_DIGIT_RANGE = 15;
  */
 const getPlaceValue = (num: number): { orderOfMagnitude: number; hasDecimals: boolean; placeValue: PlaceValue } => {
   // Remove decimals
-  const roundedNumber = Math.round(num);
+  const roundedNumber = Math.round(Math.abs(num));
 
   // Calculate the order of magnitude for the rounded number
-  const orderOfMagnitude = Math.floor(Math.log10(roundedNumber));
+  const orderOfMagnitude = roundedNumber > 0 ? Math.floor(Math.log10(roundedNumber)) : 0;
   const zeroes = { orderOfMagnitude, hasDecimals: roundedNumber !== num };
 
   if (orderOfMagnitude < 1) return { ...zeroes, placeValue: 'unit' };
