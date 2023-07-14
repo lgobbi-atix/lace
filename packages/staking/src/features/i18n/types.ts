@@ -9,6 +9,11 @@ export type ConstructTranslationKeyUnion<T extends RecursiveStructure, K extends
   : never;
 
 type KeysStructure = {
+  general: {
+    button: {
+      confirm: '';
+    };
+  };
   browsePools: {
     stakePoolTableBrowser: {
       searchInputPlaceholder: '';
@@ -24,6 +29,16 @@ type KeysStructure = {
   drawer: {
     title: '';
     titleSecond: '';
+    sign: {
+      confirmation: {
+        title: '';
+      };
+      passwordPlaceholder: '';
+      enterWalletPasswordToConfirmTransaction: '';
+      error: {
+        invalidPassword: '';
+      };
+    };
     details: {
       metrics: {
         activeStake: '';
@@ -52,12 +67,43 @@ type KeysStructure = {
       poolIds: '';
       owners: '';
     };
+    confirmation: {
+      title: '';
+      subTitle: '';
+      cardanoName: '';
+      totalCost: {
+        title: '';
+      };
+      theAmountYoullBeChargedForRegisteringYourStakeKey: '';
+      stakingDeposit: '';
+      errors: {
+        utxoFullyDepleted: '';
+        utxoBalanceInsufficient: '';
+      };
+      transactionFee: '';
+      theAmountYoullBeChargedToProcessYourTransaction: '';
+      button: {
+        continueInAdvancedView: '';
+        confirmWithDevice: '';
+        signing: '';
+        confirm: '';
+      };
+    };
   };
   overview: {
     delegationCard: {
-      status: '';
-      balance: '';
-      pools: '';
+      label: {
+        status: '';
+        balance: '';
+        pools: '';
+      };
+      statuses: {
+        multiDelegation: '';
+        overStaked: '';
+        ready: '';
+        simpleDelegation: '';
+        underStaked: '';
+      };
     };
     stakingInfoCard: {
       fee: '';
