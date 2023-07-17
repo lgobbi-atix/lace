@@ -1,8 +1,7 @@
 /* eslint-disable no-magic-numbers */
 import { DEFAULT_DECIMALS } from '@lace/common';
 import BigNumber from 'bignumber.js';
-import { unitsMap } from './constants';
-import { getNumberUnit } from './get-number-unit';
+import { getNumberUnit, UnitThreshold } from './get-number-unit';
 
 type GetCaretPositionForFormattedCurrencyProps = {
   // current partially formatted value
@@ -13,48 +12,6 @@ type GetCaretPositionForFormattedCurrencyProps = {
   displayValue: string;
 };
 
-type PlaceValue = 'unit' | 'ten' | 'hundred' | 'thousand' | 'million' | 'billion' | 'trillion' | 'quadrillion';
-
-const MILLION = 1e6;
-const BILLION = 1e9;
-const TRILLION = 1e12;
-const QUADRILLION = 1e15;
-
-// Number(value) would limit to 15 chars anyway
-const MAX_FRACTION_DIGIT_RANGE = 15;
-
-/**
- * Returns the place value of a given number with the order of magnitude and whether it has decimals.
- *
- * @param num The number for which to calculate the place value.
- * @returns An object containing the order of magnitude, whether it has decimals, and the place value.
- */
-const getPlaceValue = (num: number): { orderOfMagnitude: number; hasDecimals: boolean; placeValue: PlaceValue } => {
-  // Remove decimals
-  const roundedNumber = Math.round(Math.abs(num));
-
-  // Calculate the order of magnitude for the rounded number
-  const orderOfMagnitude = roundedNumber > 0 ? Math.floor(Math.log10(roundedNumber)) : 0;
-  const zeroes = { orderOfMagnitude, hasDecimals: roundedNumber !== num };
-
-  if (orderOfMagnitude < 1) return { ...zeroes, placeValue: 'unit' };
-  if (orderOfMagnitude === 1) return { ...zeroes, placeValue: 'ten' };
-  if (orderOfMagnitude === 2) return { ...zeroes, placeValue: 'hundred' };
-  if (orderOfMagnitude < 6) return { ...zeroes, placeValue: 'thousand' };
-  if (orderOfMagnitude < 9) return { ...zeroes, placeValue: 'million' };
-  if (orderOfMagnitude < 12) return { ...zeroes, placeValue: 'billion' };
-  if (orderOfMagnitude < 15) return { ...zeroes, placeValue: 'trillion' };
-
-  return { ...zeroes, placeValue: 'quadrillion' };
-};
-
-/**
- * Truncates a number to two decimals places
- * @param num The number to truncate
- * @returns The truncated number as a string
- */
-const truncateNumber = (num: number) => num.toString().match(/^-?\d+(?:\.\d{0,2})?/)[0];
-
 /**
  * Shortens a number to a desired length
  * @param str The string representation of the number
@@ -62,7 +19,7 @@ const truncateNumber = (num: number) => num.toString().match(/^-?\d+(?:\.\d{0,2}
  * @returns The shortened number as a string
  */
 export const shortenNumber = (str: string, length: number): string =>
-  str.length > length ? `${str.slice(0, Math.max(0, length))}` : str;
+  length > 0 && str?.length > length ? `${str.slice(0, length)}` : str;
 
 /**
  * Checks if a given string is a valid numeric value.
@@ -70,29 +27,7 @@ export const shortenNumber = (str: string, length: number): string =>
  * @param str The string to be checked.
  * @returns `true` if the string is a valid numeric value, `false` otherwise.
  */
-export const isNumeric = (str: string): boolean => !Number.isNaN(str) && !Number.isNaN(Number.parseFloat(str));
-
-/**
- * Converts a value to a locale string.
- *
- * @param value The value to format.
- * @param maximumFractionDigits The maximum number of decimal digits to display. (between 2 and 15)
- * @returns The formatted currency value.
- */
-export const formatValueToLocale = (value: number | string, maximumFractionDigits?: number): string => {
-  // Make sure that maximumFractionDigits is not less than DEFAULT_DECIMALS, which is the minimum
-  const defaultMaxFraction = maximumFractionDigits >= DEFAULT_DECIMALS ? maximumFractionDigits : DEFAULT_DECIMALS;
-  // Make sure that maximumFractionDigits is never greater than MAX_FRACTION_DIGIT_RANGE (15)
-  // -> https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#maximumfractiondigits
-  const maximumFraction =
-    defaultMaxFraction <= MAX_FRACTION_DIGIT_RANGE ? defaultMaxFraction : MAX_FRACTION_DIGIT_RANGE;
-
-  // TODO: get browser locale [LW-6089]
-  return Number(value).toLocaleString('en-US', {
-    minimumFractionDigits: DEFAULT_DECIMALS,
-    maximumFractionDigits: maximumFraction
-  });
-};
+export const isNumeric = (str: string): boolean => !new BigNumber(str).isNaN();
 
 /**
  * Formats a numeric string value with the specified decimal places.
@@ -102,12 +37,14 @@ export const formatValueToLocale = (value: number | string, maximumFractionDigit
  * @returns The formatted number string.
  */
 export const formatLocaleNumber = (value: string, decimalPlaces: number = DEFAULT_DECIMALS): string =>
-  new BigNumber(value).toFormat(decimalPlaces, {
+  new BigNumber(value).toFormat(decimalPlaces, BigNumber.ROUND_DOWN, {
     groupSize: 3,
+    // TODO: get from locale [LW-6089]
     groupSeparator: ',',
     decimalSeparator: '.'
   });
 
+// WIP: refactor MISSING - tests MISSING
 /**
  * Formats a numeric string with optional decimal places.
  *
@@ -141,6 +78,7 @@ export const getInlineCurrencyFormat = (value: string, maxDecimals = 0): string 
   return maxDecimals > 0 ? `${integerPart}.${decimalPart}` : integerPart;
 };
 
+// WIP: refactor MISSING - tests MISSING
 /**
  * Checks if the user tries to remove a comma from the previous value and also removes the character before it.
  *
@@ -177,6 +115,7 @@ export const getChangedValue = ({
   return { currentDisplayValue: newValue, value: newValue.split(',').join(''), currentCursorPosition };
 };
 
+// WIP: refactor MISSING - tests MISSING
 /**
  * Calculates the proper cursor position for formatted numbers with group separators and decimals
  */
@@ -234,7 +173,7 @@ export const getCaretPositionForFormattedCurrency = ({
 };
 
 /**
- * Formats a numeric string to have two decimal places and its corresponding unit.
+ * Formats a numeric string to have a maximum of two decimal places and returns its corresponding unit.
  *
  * @param number The number string to be formatted and to get its unit
  * @returns An object with the formatted number and its corresponding unit
@@ -243,10 +182,8 @@ export const formatNumber = (number: string): { number: string; unit?: string } 
   const bigNumber = new BigNumber(number);
   if (bigNumber.isNaN()) return { number };
 
-  const iterableUnitKeys = unitsMap.keys();
-  const { unit, unitThreshold } = getNumberUnit(bigNumber, iterableUnitKeys);
-
-  const threshold = unitThreshold.isZero() ? 1 : unitThreshold;
+  const { unit, unitThreshold } = getNumberUnit(bigNumber);
+  const threshold = unitThreshold === UnitThreshold.ZERO ? 1 : unitThreshold;
   return { number: bigNumber.div(threshold).decimalPlaces(2).toString(), unit };
 };
 
@@ -259,22 +196,12 @@ export const formatNumber = (number: string): { number: string; unit?: string } 
  * @returns The formatted value with the desired decimals and the unit as a string
  */
 export const compactNumber = (value: number | string, decimals = DEFAULT_DECIMALS): string => {
-  const numericValue = value ? Number(value) : 0;
+  const bigNumberValue = value ? new BigNumber(value) : new BigNumber(0);
 
-  if (Number.isNaN(numericValue)) return '0';
+  if (bigNumberValue.isNaN()) return formatLocaleNumber('0', decimals);
+  const { unit, unitThreshold } = getNumberUnit(bigNumberValue);
+  if (unitThreshold < UnitThreshold.MILLION) return formatLocaleNumber(bigNumberValue.toString(), decimals);
 
-  const notationsMap = new Map([
-    ['million', { notation: 'M', integerValue: MILLION }],
-    ['billion', { notation: 'B', integerValue: BILLION }],
-    ['trillion', { notation: 'T', integerValue: TRILLION }],
-    ['quadrillion', { notation: 'Q', integerValue: QUADRILLION }]
-  ]);
-
-  const valueInfo = getPlaceValue(numericValue);
-  if (valueInfo.orderOfMagnitude < 6) return formatValueToLocale(numericValue, decimals);
-
-  const valueNotation = notationsMap.get(valueInfo.placeValue);
-  const valueToFormat = numericValue / valueNotation.integerValue;
-  if (valueInfo.orderOfMagnitude > 18) return `${formatValueToLocale(valueToFormat)}${valueNotation.notation}`;
-  return `${formatValueToLocale(truncateNumber(valueToFormat))}${valueNotation.notation}`;
+  const valueToFormat = bigNumberValue.dividedBy(unitThreshold);
+  return `${formatLocaleNumber(valueToFormat.toString(), decimals)}${unit}`;
 };
